@@ -2,6 +2,7 @@
 {
 
     using System;
+    using System.Collections.Generic;
 
     using ReMod.Core;
     using ReMod.Core.Managers;
@@ -23,6 +24,8 @@
 
         private readonly AvatarList foundAvatarsList = new();
 
+        private readonly HashSet<string> foundAvatarIds = new();
+
         public override void OnUiManagerInit(UiManager uiManager)
         {
             worldAvatarList = new ReAvatarList("Avatars In World", this, false);
@@ -32,17 +35,27 @@
             Object.Destroy(worldAvatarList.GameObject.GetComponent<EnableDisableListener>());
         }
 
-        public AvatarList GetAvatars(ReAvatarList avatarList)
+        public override void OnLeftRoom()
         {
             foundAvatarsList.Clear();
+            foundAvatarIds.Clear();
+        }
+
+        public AvatarList GetAvatars(ReAvatarList avatarList)
+        {
             foreach (AvatarPedestal pedestal in Resources.FindObjectsOfTypeAll<AvatarPedestal>())
             {
                 var avatar = pedestal.field_Private_ApiAvatar_0;
                 if (avatar == null
                     || avatar.releaseStatus.IndexOf("private", StringComparison.OrdinalIgnoreCase) != -1
                     && !avatar.authorId.Equals(APIUser.CurrentUser.id, StringComparison.Ordinal)) continue;
-                
-                foundAvatarsList.Add(pedestal.field_Private_ApiAvatar_0);
+
+                // add new avatars if they haven't been found before
+                if (!foundAvatarIds.Contains(avatar.id))
+                {
+                    foundAvatarIds.Add(avatar.id);
+                    foundAvatarsList.Add(pedestal.field_Private_ApiAvatar_0);
+                }
             }
 
             return foundAvatarsList;
