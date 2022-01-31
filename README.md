@@ -1,4 +1,4 @@
-# ReModAvatarsInWorld
+# Avatars In World
 
 ReMod Addon
 
